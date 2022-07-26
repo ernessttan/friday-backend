@@ -34,7 +34,8 @@ async function createTask(req, res, next) {
         title: req.body.title,
         description: req.body.description,
         dueDate: req.body.dueDate,
-        completed: req.body.completed
+        completed: req.body.completed,
+        project: req.body.project,
     });
 
     try {
