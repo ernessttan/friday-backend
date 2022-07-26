@@ -24,7 +24,7 @@ app.use(cors(corsOptions)); // for allowing cross-origin requests
 const port = process.env.PORT || 3000;
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.DEVELOPMENT_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 .then(() => {
     console.log('MongoDB connected');
     app.listen(port, () => console.log(`Listening on port ${port}`));
@@ -35,6 +35,17 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 app.get("/", (req, res) => {
     res.send("Hello World!");
 });
+
+app.use("/tasks", require("./routes/tasks"));
+
+// Error handling
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send("Something broke!");
+} // end of error handling
+);
+
+
 
 
 
