@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 async function signup(req, res) {
     const { username, email, password } = req.body;
@@ -15,10 +17,16 @@ async function signup(req, res) {
         res.status(409).json({ message: 'Username or email is already in use' });
     }
 
+    let hashedPassword;
+    try {
+        hashedPassword = await bcrypt.hash(password, 12);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+  
     const user = new User({ 
-        username,
         email, 
-        password,
+        password: hashedPassword,
         tasks: [],
         projects: []
     });
@@ -29,7 +37,13 @@ async function signup(req, res) {
         res.status(500).json({ message: err.message });
     }
 
-    res.status(201).json({ message: 'User created' });
+    let token;
+    try {
+        token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+    res.status(201).json({ userId: user._id, token });
 }
 
 async function login(req, res) {
@@ -37,17 +51,33 @@ async function login(req, res) {
 
     let existingUser;
     try {
-        user = await User.findOne({ email });
+        existingUser = await User.findOne({ email });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 
-    if (!existingUser || existingUser.password !== password) {
-        res.status(401).json({ message: 'Invalid username or password' });
+    if (!existingUser) {
+        res.status(401).json({ message: 'That user does not exist' });
     }
-    // TODO: Validate Password
-    
-    res.status(200).json({ message: 'Login successful' });
+
+    let isValidPassword = false;
+    try {
+        isValidPassword = await bcrypt.compare(password, existingUser.password);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+
+    if (!isValidPassword) {
+        res.status(401).json({ message: 'Incorrect password' });
+    }
+
+    let token;
+    try {
+        token = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+    res.status(200).json({ userId: existingUser._id, token });
 }
 
 module.exports = {
