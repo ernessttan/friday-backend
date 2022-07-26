@@ -38,12 +38,13 @@ app.get("/", (req, res) => {
 
 app.use("/tasks", require("./routes/tasks"));
 app.use("/projects", require("./routes/projects"));
+app.use("/users", require("./routes/users"));
 
 // Error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send("Something broke!");
-} // end of error handling
+} 
 );
 
 

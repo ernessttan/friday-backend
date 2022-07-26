@@ -1,4 +1,6 @@
 const Project = require('../models/project');
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 async function getAllProjects(req, res) {
     let projects;
@@ -35,12 +37,31 @@ async function createProject(req, res) {
         userId: req.body.userId
     });
 
+    let user;
     try {
-        await project.save();
+        user = await User.findById(req.body.userId);
     } catch (err) {
         res.status(500).json({message: err.message});
     }
-    res.status(201).json({ project: project });
+
+    if (!user) {
+        res.status(404).json({message: `User with id of ${req.body.userId} not found`});
+    }
+
+    console.log(user);
+
+    try {
+        const sess= await mongoose.startSession();
+        sess.startTransaction();
+        await project.save({ session: sess });
+        user.projects.push(project);
+        await user.save({ session: sess });
+        await sess.commitTransaction();
+
+    } catch (err) {
+        res.status(500).json({message: err.message});
+    }
+    res.status(200).json({ project: project });
 }
 
 async function deleteProject(req, res) {
