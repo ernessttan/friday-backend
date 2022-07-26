@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Create a schema for our data
+// Create a schema for a task
 const taskSchema = new Schema({
     title: { type: String, required:true },
     description: { type: String, required:true },
     dueDate: { type: String, required:true },
     completed: { type: Boolean },
-    project: { type: Schema.Types.ObjectId, ref: 'Project' },
+    project: { type: mongoose.Types.ObjectId, ref: 'Project' },
 });
 
 // Create a model for our data

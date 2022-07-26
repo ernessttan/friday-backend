@@ -1,4 +1,7 @@
+const { default: mongoose } = require('mongoose');
 const Task = require('../models/task');
+const Project = require('../models/project');
+const User = require('../models/user');
 
 // Function to get all tasks
 async function getAllTasks(req, res) {
@@ -35,16 +38,43 @@ async function createTask(req, res, next) {
         description: req.body.description,
         dueDate: req.body.dueDate,
         completed: req.body.completed,
-        project: req.body.project,
+        projectId: req.body.project,
+        userId: req.body.user
     });
 
+    // Verifies that the project id and user id is valid
+    let project;
+    let user;
     try {
-        await task.save();
+        project = await Project.findById(req.body.projectId);
+        user = await User.findById(req.body.userId);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+
+    if (!project || !user) {
+        res.status(404).json({ message: 'Project or user not found' });
+    }
+
+    try {
+        // Save the task to the database
+        // Session is used to store the project id and user id
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        // Save to task collection
+        await task.save({ session: sess });
+        // Save to project collection
+        await project.tasks.push(task);
+        await project.save({ session: sess });
+        // Save to user collection
+        await user.tasks.push(task);
+        await user.save({ session: sess });
+        // Commit the transaction
+        await sess.commitTransaction();
     } catch (err) {
         const error = new Error(err, 500);
         return next(error);
     }
-
     res.status(201).json({ task: task });
 }
 

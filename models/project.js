@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// Create a schema for a project
 const projectSchema = new Schema({
     title: { type: String, required:true },
-    tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],
-    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    description: { type: String, required:true },
+    tasks: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Task' }],
+    userId: { type: String, required:true },
+    // userId: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
 });
 
 const Project = mongoose.model('Project', projectSchema);

@@ -37,6 +37,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/tasks", require("./routes/tasks"));
+app.use("/projects", require("./routes/projects"));
 
 // Error handling
 app.use((err, req, res, next) => {
