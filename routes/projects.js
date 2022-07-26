@@ -9,6 +9,8 @@ router.get('/', ProjectControllers.getAllProjects);
 // Route to get a Project by id
 router.get('/:pid', ProjectControllers.getProjectById);
 
+// router.use(require('../middleware/checkAuth'));
+
 // Route to create a Project
 router.post('/', ProjectControllers.createProject);
 

@@ -2,26 +2,29 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-async function signup(req, res) {
-    const { username, email, password } = req.body;
+async function signup(req, res, next) {
+    const { email, password } = req.body;
 
     // Validate if the username or email is already in use
     let existingUser;
     try {
-        existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        existingUser = await User.findOne({ email: email });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        const error = new Error(`Signing up failed, please try again`, 500);
+        return next(error);
     }
 
     if (existingUser) {
-        res.status(409).json({ message: 'Username or email is already in use' });
+        const error = new Error(`User with email ${email} already exists`, 400);
+        return next(error);
     }
 
     let hashedPassword;
     try {
         hashedPassword = await bcrypt.hash(password, 12);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+       const error = new Error(`Could not create user, please try again.`, 500);
+       return next(error);
     }
   
     const user = new User({ 
@@ -34,48 +37,55 @@ async function signup(req, res) {
     try {
         await user.save();
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        const error = new Error(`Could not create user, please try again.`, 500);
+        return next(error);
     }
 
     let token;
     try {
         token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        const error = new Error(`Could not create user, please try again.`, 500);
+        return next(error);
     }
     res.status(201).json({ userId: user._id, token });
 }
 
-async function login(req, res) {
+async function login(req, res, next) {
     const { email, password } = req.body;
 
     let existingUser;
     try {
         existingUser = await User.findOne({ email });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        const error = new Error(`Login failed, please try again`, 500);
+        return next(error);
     }
 
     if (!existingUser) {
-        res.status(401).json({ message: 'That user does not exist' });
+        const error = new Error(`User with email ${email} does not exist`, 400);
+        return next(error);
     }
 
     let isValidPassword = false;
     try {
         isValidPassword = await bcrypt.compare(password, existingUser.password);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        const error = new Error(`Login failed, please check your credentials`, 500);
+        return next(error);
     }
 
     if (!isValidPassword) {
-        res.status(401).json({ message: 'Incorrect password' });
+        const error = new Error(`Login failed, please check your password`, 400);
+        return next(error);
     }
 
     let token;
     try {
         token = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        const error = new Error(`Login failed, please try again.`, 500);
+        return next(error);
     }
     res.status(200).json({ userId: existingUser._id, token });
 }

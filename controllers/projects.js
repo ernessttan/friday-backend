@@ -1,35 +1,38 @@
 const Project = require('../models/project');
 const User = require('../models/user');
+const Task = require('../models/task');
 const mongoose = require('mongoose');
 
-async function getAllProjects(req, res) {
+async function getAllProjects(req, res, next) {
     let projects;
     try {
         projects = await Project.find();
     } catch (err) {
-        res.status(500).json({message: err.message});
+        const error = new Error('Could not get projects', 500);
+        return next(error);
     }
-    res.status(200).json({projects: projects.map((project) => project.toObject({ getters: true }))});
+    res.status(200).json({ projects: projects.map((project) => project.toObject({ getters: true })) });
 }
 
-async function getProjectById(req, res) {
+async function getProjectById(req, res, next) {
     const projectId = req.param.pid;
 
     let project;
     try {
         project = await Project.findById(projectId);
     } catch (err) {
-        res.status(500).json({message: err.message});
+        const error = new Error('Could not get project', 500);
+        return next(error);
     }
     
     if(!project) {
-        res.status(404).json({message: `Project with id of ${projectId} not found`});
+        const error = new Error(`Could not get project with an id of ${projectId}`, 404);
+        return next(error);
     }
-
-    res.status(200).json({ project: project });
+    res.status(200).json({ project: project.toObject({ getters: true }) });
 }
 
-async function createProject(req, res) {
+async function createProject(req, res, next) {
     const project = new Project({
         title: req.body.title,
         description: req.body.description,
@@ -41,14 +44,14 @@ async function createProject(req, res) {
     try {
         user = await User.findById(req.body.userId);
     } catch (err) {
-        res.status(500).json({message: err.message});
+        const error = new Error(`Creating project failed, please try again.`, 500);
+        return next(error);
     }
 
     if (!user) {
-        res.status(404).json({message: `User with id of ${req.body.userId} not found`});
+        const error = new Error(`Could not find user for provided id ${req.body.userId}`, 404);
+        return next(error);
     }
-
-    console.log(user);
 
     try {
         const sess= await mongoose.startSession();
@@ -59,31 +62,55 @@ async function createProject(req, res) {
         await sess.commitTransaction();
 
     } catch (err) {
-        res.status(500).json({message: err.message});
+        const error = new Error(`Creating project failed, please try again.`, 500);
+        return next(error);
     }
-    res.status(200).json({ project: project });
+    res.status(201).json({ project: project });
 }
 
 async function deleteProject(req, res) {
     const projectId = req.params.pid;
 
-    let project;
+    // Validate that the project exists
+    let existingProject;
     try {
-        project = await Project.findById(projectId);
+        existingProject = await Project.findById(projectId).populate('tasks').populate('userId');
     } catch (err) {
-        res.status(500).json({message: err.message});
+        const error = new Error(`Something went wrong, could not delete project`, 500);
+        return next(error);
     }
 
-    if (!project) {
-        res.status(404).json({message: `Project with id of ${projectId} not found`});
+    if (!existingProject) {
+        const error = new Error(`Could not find project with an id of ${projectId}`, 404);
+        return next(error);
     }
 
+    // Validate that the logged in user is allowed to delete a project
+    // if (existingProject.userId !== req.userData.userId) {
+    //     const error = new Error(`You are not authorized to delete this project`, 401);
+    //     return next(error);
+    // }
+
+    console.log(existingProject);
+
     try {
-        await Task.deleteOne({ _id: taskId });
-    } catch (err) {
-        res.status(500).json({message: err.message});
+        const sess= await mongoose.startSession();
+        sess.startTransaction();
+        await existingProject.remove({ session: sess });
+        // Remove project from user
+        existingProject.userId.projects.pull(existingProject);
+        // Remove tasks from project
+        for (let task of existingProject.tasks) { 
+            // Find the task in the user's tasks array
+            await Task.findByIdAndRemove(task);
+        }
+        await existingProject.userId.save({ session: sess });
+        await sess.commitTransaction();
+    } catch(err) {
+        const error = new Error(`Something went wrong, could not delete project`, 500);
+        return next(error);
     }
-    res.status(200).json({message: `Project with id of ${projectId} deleted`});
+    res.status(200).json({ message: 'Project deleted!' });
 }
 
 async function editProject(req, res) {

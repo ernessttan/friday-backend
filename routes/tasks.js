@@ -9,6 +9,8 @@ router.get('/', taskControllers.getAllTasks);
 // Route to get a task by id
 router.get('/:tid', taskControllers.getTaskById);
 
+// router.use(require('../middleware/checkAuth'));
+
 // Route to create a task
 router.post('/', taskControllers.createTask);
 

@@ -42,12 +42,9 @@ app.use("/users", require("./routes/users"));
 
 // Error handling
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send("Something broke!");
-} 
-);
-
-
-
-
-
+    if (res.headerSent) {
+        return next(err);
+    }
+    res.status(err.statusCode || 500);
+    res.json({ message: err.message || 'An unknown error occurred!' });
+});
