@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 // Function to get all tasks
 async function getAllTasksByUserId(req, res, next) {
    const userId = req.params.uid;
-   console.log(userId)
 
    let userTasks;
    try {

@@ -3,8 +3,8 @@ const ProjectControllers = require('../controllers/projects');
 
 const router = express.Router();
 
-// Route to get all Projects
-router.get('/', ProjectControllers.getAllProjects);
+// Route to get all Projects for a user
+router.get('/user/:uid', ProjectControllers.getAllProjectsByUserId);
 
 // Route to get a Project by id
 router.get('/:pid', ProjectControllers.getProjectById);

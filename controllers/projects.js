@@ -3,15 +3,22 @@ const User = require('../models/user');
 const Task = require('../models/task');
 const mongoose = require('mongoose');
 
-async function getAllProjects(req, res, next) {
-    let projects;
+async function getAllProjectsByUserId(req, res, next) {
+    const userId = req.params.uid;
+
+    let userProjects
     try {
-        projects = await Project.find();
+        userProjects = await User.findById(userId).populate('projects'); 
     } catch (err) {
-        const error = new Error('Could not get projects', 500);
+        const error = new Error('Error getting projects', 500);
         return next(error);
     }
-    res.status(200).json({ projects: projects.map((project) => project.toObject({ getters: true })) });
+
+    if (!userProjects || userProjects.length === 0) {
+        const error = new Error(`User with id ${userId} does not have any projects`, 404);
+        return next(error);
+    }
+    res.status(200).json({ projects: userProjects.projects.map(project => project.toObject({ getters: true })) });
 }
 
 async function getProjectById(req, res, next) {
@@ -140,7 +147,7 @@ async function editProject(req, res) {
 
 
 module.exports = {
-    getAllProjects,
+    getAllProjectsByUserId,
     getProjectById,
     createProject,
     deleteProject,
