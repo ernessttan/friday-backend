@@ -3,8 +3,8 @@ const taskControllers = require('../controllers/tasks');
 
 const router = express.Router();
 
-// Route to get all tasks
-router.get('/', taskControllers.getAllTasks);
+// Route to get all tasks for a user
+router.get('/user/:uid', taskControllers.getAllTasksByUserId);
 
 // Route to get a task by id
 router.get('/:tid', taskControllers.getTaskById);

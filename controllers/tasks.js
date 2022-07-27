@@ -4,15 +4,24 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 
 // Function to get all tasks
-async function getAllTasks(req, res, next) {
-   let tasks;
+async function getAllTasksByUserId(req, res, next) {
+   const userId = req.params.uid;
+   console.log(userId)
+
+   let userTasks;
    try {
-    tasks = await Task.find();
+    userTasks = await User.findById(userId).populate('tasks');
+    console.log(userTasks);
    } catch (err) {
-    const error = new Error('Could not get tasks', 500);
+    const error = new Error('Error getting tasks', 500);
     return next(error);
    }
-    res.status(200).json({ tasks: tasks.map((tasks) => tasks.toObject({ getters: true })) });
+
+   if(!userTasks || userTasks.length === 0) {
+       const error = new Error(`User with id ${userId} does not have any tasks`, 404);
+       return next(error);
+   }
+   res.status(200).json({ tasks: userTasks.tasks.map(task => task.toObject({ getters: true })) });
 }
 
 // Function to get a task by id
@@ -188,7 +197,7 @@ async function editTask(req, res) {
 
 // Export functions
 module.exports = {
-    getAllTasks,
+    getAllTasksByUserId,
     getTaskById,
     createTask,
     deleteTask,
