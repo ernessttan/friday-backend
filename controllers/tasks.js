@@ -36,15 +36,7 @@ async function getTaskById(req, res, next) {
 
 // Function to create a task
 async function createTask(req, res, next) {
-    const task = new Task({
-        title: req.body.title,
-        description: req.body.description,
-        dueDate: req.body.dueDate,
-        completed: req.body.completed,
-        projectId: req.body.projectId,
-        userId: req.body.userId
-    });
-
+    const {title, description, dueDate, completed, projectId, userId} = req.body;
     // Verify that the user exists
     let user;
     try {
@@ -55,7 +47,15 @@ async function createTask(req, res, next) {
     }
 
     // If user selected an existing project, add the task to the project
-    if (req.body.projectId) {
+    if (projectId) {
+        const task = new Task({
+            title,
+            description,
+            dueDate,
+            completed,
+            projectId,
+            userId
+        });
 
         // Validate that the project exists
         let project;
@@ -85,10 +85,19 @@ async function createTask(req, res, next) {
             await user.save({ session: sess });
             await sess.commitTransaction();
         } catch (err) {
-            const error = new Error('Could not create task', 500);
+            console.log(err.message);
+            const error = new Error(`Could not create task, please try again`, 500);
             return next(error);
         }
     } else {
+        const task = new Task({
+            title,
+            description,
+            dueDate,
+            completed,
+            userId
+        });
+
         try {
             const sess = await mongoose.startSession();
             sess.startTransaction();
@@ -98,11 +107,11 @@ async function createTask(req, res, next) {
             await user.save({ session: sess });
             await sess.commitTransaction();
         } catch (err) {
-            const error = new Error('Could not create task', 500);
+            const error = new Error(`Could not create task: ${err.message}`, 500);
             return next(error);
         }
     }
-    res.status(201).json({ message: 'Task created', task: task });
+    res.status(201).json({ message: 'Task created' });
 }
 
 // Function to delete a task

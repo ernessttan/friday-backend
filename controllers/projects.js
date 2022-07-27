@@ -91,8 +91,6 @@ async function deleteProject(req, res) {
     //     return next(error);
     // }
 
-    console.log(existingProject);
-
     try {
         const sess= await mongoose.startSession();
         sess.startTransaction();

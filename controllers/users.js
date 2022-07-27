@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 async function signup(req, res, next) {
     const { email, password } = req.body;
 
-    // Validate if the username or email is already in use
+    // Validate if the email is already in use
     let existingUser;
     try {
         existingUser = await User.findOne({ email: email });
@@ -14,11 +14,13 @@ async function signup(req, res, next) {
         return next(error);
     }
 
+    // If email exists, return error
     if (existingUser) {
         const error = new Error(`User with email ${email} already exists`, 400);
         return next(error);
     }
 
+    // Hash password
     let hashedPassword;
     try {
         hashedPassword = await bcrypt.hash(password, 12);
@@ -48,6 +50,7 @@ async function signup(req, res, next) {
         const error = new Error(`Could not create user, please try again.`, 500);
         return next(error);
     }
+    // Send response with userId and token
     res.status(201).json({ userId: user._id, token });
 }
 
