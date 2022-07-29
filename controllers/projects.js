@@ -75,7 +75,7 @@ async function createProject(req, res, next) {
     res.status(201).json({ project: project });
 }
 
-async function deleteProject(req, res) {
+async function deleteProject(req, res, next) {
     const projectId = req.params.pid;
 
     // Validate that the project exists
