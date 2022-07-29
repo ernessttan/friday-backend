@@ -62,7 +62,7 @@ async function getTaskById(req, res, next) {
 
 // Function to create a task
 async function createTask(req, res, next) {
-    const {title, description, dueDate, completed, projectId, userId} = req.body;
+    const {title, description, dueDate, completed, status, projectId, userId} = req.body;
     // Verify that the user exists
     let user;
     try {
@@ -79,6 +79,7 @@ async function createTask(req, res, next) {
             description,
             dueDate,
             completed,
+            status,
             projectId,
             userId
         });
