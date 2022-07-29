@@ -6,6 +6,9 @@ const router = express.Router();
 // Route to get all tasks for a user
 router.get('/user/:uid', taskControllers.getAllTasksByUserId);
 
+// Route to get all tasks for a project
+router.get('/project/:pid', taskControllers.getAllTasksByProjectId);
+
 // Route to get a task by id
 router.get('/:tid', taskControllers.getTaskById);
 

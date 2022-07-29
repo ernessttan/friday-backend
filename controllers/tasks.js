@@ -10,7 +10,6 @@ async function getAllTasksByUserId(req, res, next) {
    let userTasks;
    try {
     userTasks = await User.findById(userId).populate('tasks');
-    console.log(userTasks);
    } catch (err) {
     const error = new Error('Error getting tasks', 500);
     return next(error);
@@ -21,6 +20,25 @@ async function getAllTasksByUserId(req, res, next) {
        return next(error);
    }
    res.status(200).json({ tasks: userTasks.tasks.map(task => task.toObject({ getters: true })) });
+}
+
+// Function to get all task by project id
+async function getAllTasksByProjectId(req, res, next) {
+    const projectId = req.params.pid;
+
+    let projectTasks;
+    try {
+        projectTasks = await Project.findById(projectId).populate('tasks');
+    } catch (err) {
+        const error = new Error('Error getting tasks', 500);
+        return next(error);
+    }
+
+    if(!projectTasks || projectTasks.length === 0) {
+        const error = new Error(`Project with id ${projectId} does not have any tasks`, 404);
+        return next(error);
+    }
+    res.status(200).json({ project: projectTasks, tasks: projectTasks.tasks.map(task => task.toObject({ getters: true })) });
 }
 
 // Function to get a task by id
@@ -197,6 +215,7 @@ async function editTask(req, res) {
 // Export functions
 module.exports = {
     getAllTasksByUserId,
+    getAllTasksByProjectId,
     getTaskById,
     createTask,
     deleteTask,
