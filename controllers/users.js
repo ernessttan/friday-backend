@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 async function signup(req, res, next) {
-    const { email, password } = req.body;
+    const { firstName, email, password } = req.body;
 
     // Validate if the email is already in use
     let existingUser;
@@ -30,6 +30,7 @@ async function signup(req, res, next) {
     }
   
     const user = new User({ 
+        firstName,
         email, 
         password: hashedPassword,
         tasks: [],
@@ -40,6 +41,7 @@ async function signup(req, res, next) {
         await user.save();
     } catch (err) {
         const error = new Error(`Could not create user, please try again.`, 500);
+        console.log(err.message);
         return next(error);
     }
 
@@ -48,6 +50,7 @@ async function signup(req, res, next) {
         token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     } catch (err) {
         const error = new Error(`Could not create user, please try again.`, 500);
+        console.log(err.message);
         return next(error);
     }
     // Send response with userId and token
