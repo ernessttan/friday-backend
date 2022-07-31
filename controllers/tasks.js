@@ -45,9 +45,12 @@ async function getAllTasksByProjectId(req, res, next) {
 async function getTaskById(req, res, next) {
     const taskId = req.params.tid;
 
-    let task
+    let task;
+    let project;
     try {
         task = await Task.findById(taskId);
+        console.log(task);
+        project = await Project.findById(task.projectId);
     } catch (err) {
        const error = new Error('Could not find task', 500);
        return next(error);
@@ -57,7 +60,7 @@ async function getTaskById(req, res, next) {
         const error = new Error(`Task with id ${taskId} not found`, 404);
         return next(error);
     }
-    res.status(200).json({ task: task.toObject({ getters: true }) });
+    res.status(200).json({ task: task.toObject({ getters: true }), project: project.toObject({ getters: true }) });
 }
 
 // Function to create a task
