@@ -22,7 +22,8 @@ async function getAllProjectsByUserId(req, res, next) {
 }
 
 async function getProjectById(req, res, next) {
-    const projectId = req.param.pid;
+    const projectId = req.params.pid;
+    console.log(projectId);
 
     let project;
     try {
