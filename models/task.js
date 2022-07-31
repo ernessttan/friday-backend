@@ -9,6 +9,7 @@ const taskSchema = new Schema({
     completed: { type: Boolean, required:true },
     status: { type: String, required:true },
     projectId: { type: mongoose.Types.ObjectId, ref: 'Project' },
+    projectTitle: { type: String },
     userId: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
 });
 

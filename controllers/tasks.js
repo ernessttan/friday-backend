@@ -46,11 +46,8 @@ async function getTaskById(req, res, next) {
     const taskId = req.params.tid;
 
     let task;
-    let project;
     try {
         task = await Task.findById(taskId);
-        console.log(task);
-        project = await Project.findById(task.projectId);
     } catch (err) {
        const error = new Error('Could not find task', 500);
        return next(error);
@@ -60,7 +57,7 @@ async function getTaskById(req, res, next) {
         const error = new Error(`Task with id ${taskId} not found`, 404);
         return next(error);
     }
-    res.status(200).json({ task: task.toObject({ getters: true }), project: project.toObject({ getters: true }) });
+    res.status(200).json({ task: task.toObject({ getters: true }) });
 }
 
 // Function to create a task
@@ -77,16 +74,7 @@ async function createTask(req, res, next) {
 
     // If user selected an existing project, add the task to the project
     if (projectId) {
-        const task = new Task({
-            title,
-            description,
-            dueDate,
-            completed,
-            status,
-            projectId,
-            userId
-        });
-
+        
         // Validate that the project exists
         let project;
         try {
@@ -100,6 +88,17 @@ async function createTask(req, res, next) {
             const error = new Error(`Project with id ${req.body.projectId} not found`, 404);
             return next(error);
         }
+
+        const task = new Task({
+            title,
+            description,
+            dueDate,
+            completed,
+            status,
+            projectId,
+            projectTitle: project.title,
+            userId
+        });
 
         // Save to database
         try {
@@ -189,29 +188,44 @@ async function deleteTask(req, res, next) {
 }
 
 // Function to edit a task
-async function editTask(req, res) {
+async function editTask(req, res, next) {
     const taskId = req.params.tid;
 
     let task;
     try {
         task = await Task.findById(taskId);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+       const error = new Error('Could not find task', 500);
+       return next(error);
     }
-
+    
     if(!task) {
         res.status(404).json({ message: 'Task not found' });
-    } 
+    }
+
+    let project;
+        try {
+            project = await Project.findById(req.body.projectId);
+        } catch (err) {
+            const error = new Error('Could not find project', 500);
+            return next(error);
+        }
+    
 
     task.title = req.body.title;
     task.description = req.body.description;
     task.dueDate = req.body.dueDate;
+    task.dueDate = req.body.dueDate;
     task.completed = req.body.completed;
+    task.status = req.body.status;
+    task.projectId = req.body.projectId;
+    task.projectTitle = project.title;
 
     try {
         await task.save();
     } catch (err) { 
-        res.status(500).json({ message: err.message });
+        const error = new Error('Could not update task', 500);
+        return next(error);
     }
     res.status(200).json({ updatedTask: task });
 }
