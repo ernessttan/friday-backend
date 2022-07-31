@@ -227,7 +227,7 @@ async function editTask(req, res, next) {
         const error = new Error('Could not update task', 500);
         return next(error);
     }
-    res.status(200).json({ updatedTask: task });
+    res.status(200).json({ updatedTask: task.toObject({ getters: true }) });
 }
 
 // Export functions
