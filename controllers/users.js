@@ -54,7 +54,7 @@ async function signup(req, res, next) {
         return next(error);
     }
     // Send response with userId and token
-    res.status(201).json({ userId: user._id, token });
+    res.status(201).json({ firstName, userId: user._id, token });
 }
 
 async function login(req, res, next) {
@@ -93,7 +93,7 @@ async function login(req, res, next) {
         const error = new Error(`Login failed, please try again.`, 500);
         return next(error);
     }
-    res.status(200).json({ userId: existingUser._id, token });
+    res.status(200).json({ firstName: existingUser.firstName, userId: existingUser._id, token });
 }
 
 module.exports = {
