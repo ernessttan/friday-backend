@@ -204,7 +204,8 @@ async function editTask(req, res, next) {
         res.status(404).json({ message: 'Task not found' });
     }
 
-    let project;
+    if (req.body.projectId) {
+        let project;
         try {
             project = await Project.findById(req.body.projectId);
         } catch (err) {
@@ -212,12 +213,13 @@ async function editTask(req, res, next) {
             return next(error);
         }
 
-    if (!project) {
-        res.status(404).json({ message: 'Project not found' });
-    } else {
+        if (!project) {
+            res.status(404).json({ message: 'Project not found' });
+        } 
+            
         task.projectTitle = project.title;
+        task.projectId = req.body.projectId;
     }
-    
 
     task.title = req.body.title;
     task.description = req.body.description;
@@ -225,7 +227,6 @@ async function editTask(req, res, next) {
     task.dueDate = req.body.dueDate;
     task.completed = req.body.completed;
     task.status = req.body.status;
-    task.projectId = req.body.projectId;
 
     try {
         await task.save();
