@@ -124,7 +124,8 @@ async function createTask(req, res, next) {
             description,
             dueDate,
             completed,
-            userId
+            userId,
+            status
         });
 
         try {
