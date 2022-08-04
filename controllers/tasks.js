@@ -211,6 +211,12 @@ async function editTask(req, res, next) {
             const error = new Error('Could not find project', 500);
             return next(error);
         }
+
+    if (!project) {
+        res.status(404).json({ message: 'Project not found' });
+    } else {
+        task.projectTitle = project.title;
+    }
     
 
     task.title = req.body.title;
@@ -220,7 +226,6 @@ async function editTask(req, res, next) {
     task.completed = req.body.completed;
     task.status = req.body.status;
     task.projectId = req.body.projectId;
-    task.projectTitle = project.title;
 
     try {
         await task.save();
