@@ -216,7 +216,6 @@ async function editTask(req, res, next) {
         if (!project) {
             res.status(404).json({ message: 'Project not found' });
         } 
-            
         task.projectTitle = project.title;
         task.projectId = req.body.projectId;
     }
